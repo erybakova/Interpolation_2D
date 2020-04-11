@@ -19,12 +19,29 @@ int compute_i (double *x, double xx, int n)
     if (xx <= x[n - 1] && xx >= x[n - 1]) return n - 2;
 
     for (i = 0; i < n; i++)
-    {
         if (xx < x[i]) return i - 1;
-    }
 
     printf("Smth wrong..\n");
     return 0;
+}
+
+int bin_search(double *x, double xx, int left, int right, int n)
+{
+    int mid;
+
+    if (xx <= x[0] && xx >= x[0]) return 0;
+    if (xx <= x[n - 1] && xx >= x[n - 1]) return n - 2;
+
+    while (left < right)
+    {
+        mid = (left + right) / 2;
+        if (xx < x[mid])
+            right = mid;
+        else
+            left = mid + 1;
+    }
+
+    return left - 1;
 }
 
 double d (int i, double  *y, double h)

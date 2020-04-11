@@ -7,6 +7,12 @@
 
 #include <math.h>
 
+void print_array(double *x, int n)
+{
+    for (int i = 0; i < n; i++) printf("%.3f ", x[i]);
+    printf("\n");
+}
+
 double Window:: polynomial_approximation (double xx)
 {
     return apply_method (x, y, n, xx);
@@ -21,7 +27,8 @@ double Window:: piecewise_polynomial_approximation (double xx)
     d1 = (this ->* d2_f) (a);
     d2 = (this ->* d2_f) (b);
 
-    i = compute_i (x, xx, n);
+    //i = compute_i (x, xx, n);
+    i = bin_search (x, xx, 0, n - 1, n);
     return apply_method (x, y, n, xx, i, h, d1, d2);
 }
 
@@ -57,8 +64,7 @@ Window:: Window (QWidget *parent, double a_, double b_, int n_, int k_) : QWidge
     p = 0;
     max_abs = 0;
 
-    x = new double[n];
-    y = new double[n];
+    create_vectors(n);
 
     change_func();
 }
@@ -84,20 +90,27 @@ void Window::change_content ()
     {
         case method1:
           method_name = "Method 1";
-          set_curr_f (0);
           break;
         case method2:
           method_name = "Method 2";
-          set_curr_f (1);
           break;
         case method1_and_method2:
           method_name = "Methods 1 and 2";
-          set_curr_f (0);
           break;
         case error_graph:
           method_name = "Error graphs";
-          set_curr_f (0);
           break;
+    }
+
+    if (n > 50 && content == 0)
+    {
+        content = 1;
+        method_name = "Method 2";
+    }
+    if (n > 50 && content == 2)
+    {
+        content = 3;
+        method_name = "Error graphs";
     }
 
     update ();
@@ -149,9 +162,16 @@ void Window::change_func ()
           break;
     }
 
-    content = 0;
-    method_name = "Method 1";
-    set_curr_f (0);
+    if (n <= 50)
+    {
+        content = 0;
+        method_name = "Method 1";
+    }
+    else
+    {
+        content = 1;
+        method_name = "Method 2";
+    }
 
     k++;
     update ();
@@ -203,12 +223,23 @@ void Window::paintEvent (QPaintEvent * /* event */)
         f_max = f_max > max_y1 ? f_max : max_y1;
         break;
       case error_graph:
-        set_curr_f (0);
-        max_and_min (&Window:: error, delta_x, &min_y, &max_y, &abs_value);
+        if (n <= 50)
+        {
+            set_curr_f (0);
+            max_and_min (&Window:: error, delta_x, &min_y, &max_y, &abs_value);
+        }
         set_curr_f (1);
         max_and_min (&Window:: error, delta_x, &min_y1, &max_y1, &abs_value);
-        f_min = min_y < min_y1 ? min_y : min_y1;
-        f_max = max_y > max_y1 ? max_y : max_y1;
+        if (n <= 50)
+        {
+            f_min = min_y < min_y1 ? min_y : min_y1;
+            f_max = max_y > max_y1 ? max_y : max_y1;
+        }
+        else
+        {
+            f_min = min_y1;
+            f_max = max_y1;
+        }
         break;
     }
 
@@ -240,8 +271,11 @@ void Window::paintEvent (QPaintEvent * /* event */)
           resid1 = residual (curr_f, delta_x);
           break;
         case error_graph:
-          set_curr_f (0);
-          draw (painter, &Window:: error, delta_x, pen_red);
+          if (n <= 50)
+          {
+              set_curr_f (0);
+              draw (painter, &Window:: error, delta_x, pen_red);
+          }
           set_curr_f (1);
           draw (painter, &Window:: error, delta_x, pen_green);
           break;
@@ -257,7 +291,7 @@ void Window:: scaling_and_axes (QPainter& painter, double f_max, double f_min, Q
     painter.save ();
 
     double delta = fabs (f_max - f_min);
-    if (delta < 1e-20) delta = 1e-15;
+    if (delta < 1e-20) delta = 1e-12;
 
     /// make Coordinate Transformations
     painter.translate (0.5 * width (), 0.5 * height ());
@@ -267,7 +301,7 @@ void Window:: scaling_and_axes (QPainter& painter, double f_max, double f_min, Q
     /// draw axis
     painter.setPen (pen);
     painter.drawLine (QPointF (a, 0), QPointF (b, 0));
-    painter.drawLine (QPointF (0, f_max * 1.5), QPointF (0, f_min - 1));
+    painter.drawLine (QPointF (0, f_max + 0.05), QPointF (0, f_min - 1));
 }
 
 void Window:: max_and_min (double (Window:: *ff) (double), double delta_x,
@@ -448,14 +482,23 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         painter.drawText (l, 60, f_name);
 
         painter.setFont (font2);
-        painter.fillRect (r - 10, b + 5, 130, 45, Qt::white);
-        painter.fillRect (r, b + 15, 8, 8, Qt::red);
-        painter.setPen (pen_red);
-        painter.drawText (r + 18, b + 23, "Error of method 1");
-
-        painter.fillRect (r, b + 30, 8, 8, Qt::darkGreen);
-        painter.setPen (pen_green);
-        painter.drawText (r + 18, b + 38, "Error of method 2");
+        if (n <= 50)
+        {
+            painter.fillRect (r - 10, b + 5, 130, 45, Qt::white);
+            painter.fillRect (r, b + 15, 8, 8, Qt::red);
+            painter.setPen (pen_red);
+            painter.drawText (r + 18, b + 23, "Error of method 1");
+            painter.fillRect (r, b + 30, 8, 8, Qt::darkGreen);
+            painter.setPen (pen_green);
+            painter.drawText (r + 18, b + 38, "Error of method 2");
+        }
+        else
+        {
+            painter.fillRect (r - 10, b + 5, 130, 22, Qt::white);
+            painter.fillRect (r, b + 12, 8, 8, Qt::darkGreen);
+            painter.setPen (pen_green);
+            painter.drawText (r + 18, b + 20, "Error of method 2");
+        }
         break;
     }
 
@@ -497,14 +540,24 @@ void Window:: scale_mult_2 ()
 
 void Window:: n_div_2 ()
 {
+    free_vectors();
     n /= 2;
+    create_vectors(n);
 
     update ();
 }
 
 void Window:: n_mult_2 ()
 {
+    free_vectors();
     n *= 2;
+    create_vectors(n);
+
+    if (n > 50 && content == 0)
+    {
+        content = 1;
+        method_name = "Method 2";
+    }
 
     update ();
 }
@@ -522,3 +575,5 @@ void Window:: p_minus_1 ()
 
     update ();
 }
+
+

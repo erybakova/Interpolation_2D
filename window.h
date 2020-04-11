@@ -39,6 +39,11 @@ public:
   double polynomial_approximation (double xx);
   double piecewise_polynomial_approximation (double xx);
   void set_curr_f (bool t);
+  void create_vectors(int n)
+  {
+      x = new double[n];
+      y = new double[n];
+  }
   void free_vectors()
   {
       delete [] x;

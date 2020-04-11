@@ -66,9 +66,9 @@ int main (int argc, char *argv[])
 
     app.exec ();
 
-    graph_area -> free_vectors();
-
     delete window;
+
+    graph_area -> free_vectors();
 
     return 0;
 }
