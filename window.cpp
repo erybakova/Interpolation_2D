@@ -104,6 +104,7 @@ void Window::change_content ()
 
     if (n > 50 && content == 0)
     {
+        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
     }
@@ -169,6 +170,7 @@ void Window::change_func ()
     }
     else
     {
+        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
     }
@@ -200,6 +202,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
       case method1:
         set_curr_f (0);
         max_and_min (f, delta_x, &min_yy, &max_yy, &abs_value);
+        max_abs = abs_value;
         max_and_min (curr_f, delta_x, &min_y, &max_y, &abs_value);
         f_min = min_y < min_yy ? min_y : min_yy;
         f_max = max_y > max_yy ? max_y : max_yy;
@@ -208,11 +211,13 @@ void Window::paintEvent (QPaintEvent * /* event */)
         set_curr_f (1);
         max_and_min (curr_f, delta_x, &min_y, &max_y, &abs_value);
         max_and_min (f, delta_x, &min_yy, &max_yy, &abs_value);
+        max_abs = abs_value;
         f_min = min_y < min_yy ? min_y : min_yy;
         f_max = max_y > max_yy ? max_y : max_yy;
         break;
       case method1_and_method2:
         max_and_min (f, delta_x, &min_yy, &max_yy, &abs_value);
+        max_abs = abs_value;
         set_curr_f (0);
         max_and_min (curr_f, delta_x, &min_y, &max_y, &abs_value);
         f_min = min_y < min_yy ? min_y : min_yy;
@@ -283,7 +288,7 @@ void Window::paintEvent (QPaintEvent * /* event */)
     painter.restore ();
 
     // print necessary information
-    print_info (painter, pen_black, f_min, f_max, abs_value, resid, resid1);
+    print_info (painter, pen_black, f_min, f_max, max_abs, resid, resid1);
 }
 
 void Window:: scaling_and_axes (QPainter& painter, double f_max, double f_min, QPen pen)
@@ -291,14 +296,15 @@ void Window:: scaling_and_axes (QPainter& painter, double f_max, double f_min, Q
     painter.save ();
 
     double delta = fabs (f_max - f_min);
-    if (delta < 1e-20) delta = 1e-12;
+    //printf ("scaling min %e, max %e, delta %e\n", f_min, f_max, delta);
+    if (delta < 1e-6) delta = 1e-6;
 
-    /// make Coordinate Transformations
+    // make Coordinate Transformations
     painter.translate (0.5 * width (), 0.5 * height ());
     painter.scale (width () / (b - a), -height () / delta);
     painter.translate (-0.5 * (a + b), -0.5 * (f_min + f_max));
 
-    /// draw axis
+    // draw axis
     painter.setPen (pen);
     painter.drawLine (QPointF (a, 0), QPointF (b, 0));
     painter.drawLine (QPointF (0, f_max + 0.05), QPointF (0, f_min - 1));
@@ -318,14 +324,12 @@ void Window:: max_and_min (double (Window:: *ff) (double), double delta_x,
     {
       y1 = (this ->* ff) (x1);
       if (y1 < *min)
-          *min = y1;
+           *min = y1;
       if (y1 > *max)
           *max = y1;
       if (fabs (y1) > *abs_value)
           *abs_value = fabs (y1);
     }
-
-    max_abs = *abs_value;
 }
 
 void Window:: draw (QPainter& painter, double (Window:: *ff) (double), double delta_x, QPen pen)
@@ -344,9 +348,8 @@ void Window:: draw (QPainter& painter, double (Window:: *ff) (double), double de
       x1 = x2, y1 = y2;
     }
 
-    x2 = b;
-    y2 = (this ->* ff) (x2);
-    painter.drawLine (QPointF (x1, y1), QPointF (x2, y2));
+    y2 = (this ->* ff) (b);
+    painter.drawLine (QPointF (x1, y1), QPointF (b, y2));
 }
 
 double Window:: residual (double (Window:: *ff) (double), double delta_x)
@@ -395,16 +398,17 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
     switch (content)
     {
       case method1:
-        sprintf (buf, "max |y| = %.3g", abs_value);
+        sprintf (buf, "max |f(x)| = %.3g", abs_value);
         painter.drawText (l, 90, buf);
         printf("%s\n", method_name);
-        printf("k = %d  max |y| = %.3g\n", k - 1, abs_value);
+        printf("k = %d  max |f(x)| = %.3g\n", k - 1, abs_value);
         max = fabs (f_min) > fabs (f_max) ? fabs (f_min) : fabs (f_max);
         sprintf (buf, "max {|F_min|,|F_max|} = %.3g", max);
         painter.drawText (l, 110, buf);
-        printf("       max {|F_min|,|F_max|} = %.3g\n\n", max);
+        printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual = %.3e", resid);
         painter.drawText (l, 130, buf);
+        printf("       residual = %.3e\n\n", resid);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -418,16 +422,17 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         painter.drawText (r + 18, b + 23, "method 1");
         break;
       case method2:
-        sprintf (buf, "max |y| = %.3g", abs_value);
+        sprintf (buf, "max |f(x)| = %.3g", abs_value);
         painter.drawText (l, 90, buf);
         printf("%s\n", method_name);
-        printf("k = %d  max |y| = %.3g\n", k - 1, abs_value);
+        printf("k = %d  max |f(x)| = %.3g\n", k - 1, abs_value);
         max = fabs (f_min) > fabs (f_max) ? fabs (f_min) : fabs (f_max);
         sprintf (buf, "max {|F_min|,|F_max|} = %.3g", max);
         painter.drawText (l, 110, buf);
-        printf("       max {|F_min|,|F_max|} = %.3g\n\n", max);
+        printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual = %.3e", resid);
         painter.drawText (l, 130, buf);
+        printf("       residual = %.3e\n\n", resid);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -442,18 +447,20 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         painter.drawText (r + 18, b + 23, "method 2");
         break;
       case method1_and_method2:
-        sprintf (buf, "max |y| = %.3g", abs_value);
+        sprintf (buf, "max |f(x)| = %.3g", abs_value);
         painter.drawText (l, 90, buf);
         printf("%s\n", method_name);
-        printf("k = %d  max |y| = %.3g\n", k - 1, abs_value);
+        printf("k = %d  max |f(x)| = %.3g\n", k - 1, abs_value);
         max = fabs (f_min) > fabs (f_max) ? fabs (f_min) : fabs (f_max);
         sprintf (buf, "max {|F_min|,|F_max|} = %.3g", max);
         painter.drawText (l, 110, buf);
-        printf("       max {|F_min|,|F_max|} = %.3g\n\n", max);
+        printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual_1 = %.3e", resid);
         painter.drawText (l, 130, buf);
+        printf("       residual_1 = %.3e\n", resid);
         sprintf (buf, "residual_2 = %.3e", resid1);
         painter.drawText (l, 150, buf);
+        printf("       residual_2 = %.3e\n\n", resid1);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -506,7 +513,7 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
     painter.setFont (font);
     painter.drawText (l, 30, method_name);
     painter.setFont (font1);
-    sprintf (buf, "k = %d", k);
+    sprintf (buf, "k = %d", k - 1);
     painter.drawText (r, 35, buf);
     sprintf (buf, "n = %d", n);
     painter.drawText (r, 57, buf);
@@ -541,9 +548,17 @@ void Window:: scale_mult_2 ()
 void Window:: n_div_2 ()
 {
     free_vectors();
-    n /= 2;
-    create_vectors(n);
 
+    n /= 2;
+
+    if (n < 5)
+    {
+        n = 5;
+        //QMessageBox::warning (0, "Warning", "Min n = 5!");
+    }
+
+    create_vectors(n);
+    
     update ();
 }
 
@@ -555,6 +570,7 @@ void Window:: n_mult_2 ()
 
     if (n > 50 && content == 0)
     {
+        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
     }

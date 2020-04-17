@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
             || (b - a < 1.e-6) || (sscanf (argv[3], "%d", &n) != 1) || (n < 5)
                 || (sscanf (argv[4], "%d", &k) != 1) || (k < 0) || (k > 7))
     {
-        printf("Usage: ./basic_graph a b n(>= 5) k\n");
+        printf("Usage: ./a.out a b n(>= 5) k\n");
         return 0;
     }
 
@@ -35,22 +35,22 @@ int main (int argc, char *argv[])
     action = tool_bar -> addAction ("Change content", graph_area, SLOT (change_content ()));
     action -> setShortcut (QString ("1"));
 
-    action = tool_bar -> addAction ("Scale * 2", graph_area, SLOT (scale_mult_2 ()));
+    action = tool_bar -> addAction ("Zoom in", graph_area, SLOT (scale_mult_2 ()));
     action -> setShortcut (QString ("2"));
 
-    action = tool_bar -> addAction ("Scale / 2", graph_area, SLOT (scale_div_2 ()));
+    action = tool_bar -> addAction ("Zoom out", graph_area, SLOT (scale_div_2 ()));
     action -> setShortcut (QString ("3"));
 
-    action = tool_bar -> addAction ("n * 2", graph_area, SLOT (n_mult_2 ()));
+    action = tool_bar -> addAction ("Double n", graph_area, SLOT (n_mult_2 ()));
     action -> setShortcut (QString ("4"));
 
-    action = tool_bar -> addAction ("n / 2", graph_area, SLOT (n_div_2 ()));
+    action = tool_bar -> addAction ("Half n", graph_area, SLOT (n_div_2 ()));
     action -> setShortcut (QString ("5"));
 
-    action = tool_bar -> addAction ("p + 1", graph_area, SLOT (p_plus_1 ()));
+    action = tool_bar -> addAction ("p++", graph_area, SLOT (p_plus_1 ()));
     action -> setShortcut (QString ("6"));
 
-    action = tool_bar -> addAction ("p - 1", graph_area, SLOT (p_minus_1 ()));
+    action = tool_bar -> addAction ("p--", graph_area, SLOT (p_minus_1 ()));
     action -> setShortcut (QString ("7"));
 
     action = tool_bar -> addAction ("Exit", window, SLOT (close ()));
@@ -61,14 +61,15 @@ int main (int argc, char *argv[])
     window -> setMenuBar (tool_bar);
     window -> setCentralWidget (graph_area);
     window -> setWindowTitle ("Graph");
-
+    
     window -> show ();
 
     app.exec ();
 
-    delete window;
-
     graph_area -> free_vectors();
+    delete graph_area;
+    delete tool_bar;
+    delete window;
 
     return 0;
 }

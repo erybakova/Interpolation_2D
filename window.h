@@ -56,9 +56,7 @@ public:
       for (i = 0; i < n; i++)
       {
           y[i] = (this ->* f) (x[i]);
-          //printf("y[%d] = %.3f ", i, y[i]);
       }
-      //printf("\n");
       y[n / 2] += p * 0.1 * max_abs;
   }
   double f_ (double x);

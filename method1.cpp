@@ -1,6 +1,6 @@
 #include "method1.h"
 
-#include <math.h>
+#include <cmath> 
 #include <stdio.h>
 
 void set_Chebyshev_zeros (double *x, double a, double b, int n)
@@ -18,11 +18,11 @@ void set_Chebyshev_zeros (double *x, double a, double b, int n)
 double apply_method (double *x, double *y, int n, double xx)
 {
     int i, j;
-    double mult, phi = 1, sum = 0, y_i = 1, delta;
+    double mult, phi = 1., sum = 0., y_i = 1., delta;
 
     for (i = 0; i < n; i++)
     {
-        mult = 1;
+        mult = 1.;
         for (j = 0; j < n; j++)
         {
             if (j == i) continue;
