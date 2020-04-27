@@ -86,32 +86,34 @@ void Window::change_content ()
     p = 0;
     content = (content + 1) % 4;
 
-    switch (content)
-    {
-        case method1:
-          method_name = "Method 1";
-          break;
-        case method2:
-          method_name = "Method 2";
-          break;
-        case method1_and_method2:
-          method_name = "Methods 1 and 2";
-          break;
-        case error_graph:
-          method_name = "Error graphs";
-          break;
-    }
-
     if (n > 50 && content == 0)
     {
-        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
+        QMessageBox::warning (0, "Warning", "Too big n for Method 1!");
     }
-    if (n > 50 && content == 2)
+    else if (n > 50 && content == 2)
     {
         content = 3;
         method_name = "Error graphs";
+    }
+    else
+    {
+        switch (content)
+        {
+	    case method1:
+	      method_name = "Method 1";
+	      break;
+	    case method2:
+	      method_name = "Method 2";
+	      break;
+	    case method1_and_method2:
+	      method_name = "Methods 1 and 2";
+	      break;
+	    case error_graph:
+	      method_name = "Error graphs";
+	      break;
+        }
     }
 
     update ();
@@ -170,9 +172,9 @@ void Window::change_func ()
     }
     else
     {
-        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
+	QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
     }
 
     k++;
@@ -408,7 +410,7 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual = %.3e", resid);
         painter.drawText (l, 130, buf);
-        printf("       residual = %.3e\n\n", resid);
+        printf("       residual = %e\n\n", resid);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -432,7 +434,7 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual = %.3e", resid);
         painter.drawText (l, 130, buf);
-        printf("       residual = %.3e\n\n", resid);
+        printf("       residual = %e\n\n", resid);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -457,10 +459,10 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         printf("       max {|F_min|,|F_max|} = %.3g\n", max);
         sprintf (buf, "residual_1 = %.3e", resid);
         painter.drawText (l, 130, buf);
-        printf("       residual_1 = %.3e\n", resid);
+        printf("       residual_1 = %e\n", resid);
         sprintf (buf, "residual_2 = %.3e", resid1);
         painter.drawText (l, 150, buf);
-        printf("       residual_2 = %.3e\n\n", resid1);
+        printf("       residual_2 = %e\n\n", resid1);
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
 
@@ -483,7 +485,7 @@ void Window:: print_info (QPainter& painter, QPen pen, double f_min,
         sprintf (buf, "max {|F_min|,|F_max|} = %.3g", max);
         painter.drawText (l, 90, buf);
         printf("%s\n", method_name);
-        printf("       max {|F_min|,|F_max|} = %.3g\n\n", max);
+        printf("       max {|F_min|,|F_max|} = %e\n\n", max);
 
         painter.setFont (font1);
         painter.drawText (l, 60, f_name);
@@ -568,11 +570,11 @@ void Window:: n_mult_2 ()
     n *= 2;
     create_vectors(n);
 
-    if (n > 50 && content == 0)
+    if (n > 50 && (content == 0 || content == 2))
     {
-        QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
         content = 1;
         method_name = "Method 2";
+	QMessageBox::warning(0, "Warning", "Too big n for Method 1!");
     }
 
     update ();
